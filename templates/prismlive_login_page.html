@@ -729,6 +729,30 @@ a {
 }
 
 
+.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+}
+.google-mark {
+    font-size: 16px;
+    font-weight: 800;
+    color: #4285f4;
+}
+.linkedin-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 2px;
+    background: #0a66c2;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+}
 .social-button:hover {
 
     border-color: #0876d9;
@@ -859,8 +883,15 @@ a {
 
 }
 
+
+.auth-alert{padding:11px 13px;margin:0 0 16px;border-radius:6px;font-size:11px;line-height:1.5}
+.auth-alert.success{background:#eaf8ef;color:#176b38;border:1px solid #bfe7cb}
+.auth-alert.error{background:#fff0f0;color:#a12c2c;border:1px solid #f0caca}
+.auth-alert.info{background:#eef6ff;color:#245b91;border:1px solid #c9def5}
 </style>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-responsive.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile-menu.css') }}">
 </head>
 
 
@@ -873,7 +904,7 @@ a {
 
 <header class="navbar">
 
-    <a href="index.html"
+    <a href="{{ url_for('home') }}"
        class="logo">
 
         Prism Live
@@ -884,7 +915,7 @@ a {
     <nav class="nav-links">
 
 
-        <a href="prismlive_home_page.html" class="get-started">
+        <a href="{{ url_for('home') }}" class="get-started">
                     Back
                 
         </a>
@@ -1006,6 +1037,12 @@ a {
                 </p>
 
             </div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% for category, message in messages %}
+                <div class="auth-alert {{ category }}" role="alert">{{ message }}</div>
+              {% endfor %}
+            {% endwith %}
+
 
 
 
@@ -1089,7 +1126,7 @@ a {
 
 
                     <a
-                        href="forgot-password.html"
+                        href="{{ url_for('forgot_password') }}"
                         class="forgot">
 
                         Forgot Password?
@@ -1128,22 +1165,18 @@ a {
 
             <div class="social-login">
 
-                <button
-                    type="button"
-                    class="social-button">
-
-                    G &nbsp; Google
-
-                </button>
+                <a href="{{ url_for('google_login') }}"
+                   class="social-button social-link"
+                   aria-label="Continue with Google">
+                    <span class="google-mark">G</span> Continue with Google
+                </a>
 
 
-                <button
-                    type="button"
-                    class="social-button">
-
-                    in &nbsp; LinkedIn
-
-                </button>
+                <a href="{{ url_for('linkedin_login') }}"
+                   class="social-button social-link"
+                   aria-label="Continue with LinkedIn">
+                    <span class="linkedin-mark">in</span> Continue with LinkedIn
+                </a>
 
             </div>
 
@@ -1155,7 +1188,7 @@ a {
 
                 Don't have an account?
 
-                <a href="prismlive_register_page.html">
+                <a href="{{ url_for('register') }}">
                     Create Account
                 </a>
 
@@ -1208,6 +1241,7 @@ function togglePassword() {
 </script>
 
 
+    {% include 'partials/profile_menu.html' %}
 </body>
 
 </html>

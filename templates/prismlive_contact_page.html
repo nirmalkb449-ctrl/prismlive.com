@@ -56,22 +56,25 @@
         }
 
         .nav-container {
-            width: 94%;
-            max-width: 1240px;
-            height: 100%;
-            margin: auto;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    margin: 0;
 
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+    padding: 0 40px;
+    box-sizing: border-box;
 
-        .logo {
-            color: white;
-            font-size: 20px;
-            font-weight: 800;
-             letter-spacing: -0.5px;
-        }
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    color: white;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
 
         .nav-links {
             display: flex;
@@ -539,24 +542,13 @@
            FOOTER
         ========================= */
 
-        footer {
-            width: 94%;
-            max-width: 1180px;
-
-            margin: 18px auto 20px;
-
-            padding: 20px 30px;
-
-            background: #06346f;
-
-            color: white;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            border-radius: 10px;
-        }
+      footer {
+    width: 100%;
+    max-width: 1180px;
+    margin: 18px auto 20px;
+    padding: 20px 30px;
+    border-radius: 10px;
+}
 
         .footer-logo {
             font-size: 17px;
@@ -572,110 +564,18 @@
            RESPONSIVE
         ========================= */
 
-        @media (max-width: 1000px) {
+       
+        .hamburger{ display:none; font-size:28px; background:none; border:none; color:white; cursor:pointer; }
 
-            .nav-links {
-                gap: 12px;
-            }
+@media (max-width: 768px){
+  .hamburger{ display:block !important; }
+  .nav-menu{ display:none; flex-direction:column; background:#0a4bd6; width:100%; padding:20px; gap:15px; position:absolute; top:70px; left:0; }
+  .nav-menu.open{ display:flex !important; }
+}
 
-            .contact-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .quick-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 700px) {
-
-            .navbar {
-                height: 62px;
-            }
-
-            .nav-links {
-                display: none;
-
-                position: absolute;
-                top: 62px;
-                left: 0;
-                right: 0;
-
-                padding: 15px;
-
-                background: #075bc7;
-
-                flex-direction: column;
-                align-items: stretch;
-
-                gap: 3px;
-            }
-
-            .nav-links.show {
-                display: flex;
-            }
-
-            .nav-links a {
-                padding: 8px;
-            }
-
-            .menu-button {
-                display: block;
-            }
-
-            .contact-hero {
-                min-height: 400px;
-            }
-
-            .hero-content {
-                width: 100%;
-                padding: 65px 28px;
-            }
-
-            .hero-title {
-                font-size: 38px;
-            }
-
-            .contact-section {
-                padding: 28px 20px;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .support-banner {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 18px;
-                padding: 28px;
-            }
-
-            .quick-grid {
-                grid-template-columns: 1fr;
-            }
-
-            footer {
-                flex-direction: column;
-                gap: 8px;
-            }
-        }
-
-        @media (max-width: 430px) {
-
-            .hero-title {
-                font-size: 33px;
-            }
-
-            .contact-form {
-                padding: 18px;
-            }
-
-            .quick-section {
-                padding: 25px 18px;
-            }
-        }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-responsive.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile-menu.css') }}">
 </head>
 
 <body>
@@ -691,6 +591,8 @@
             <a href="#" class="logo">
                 Prism Live
             </a>
+
+            <button id="menuBtn" class="hamburger">☰</button>
 
             <nav class="nav-links">
 
@@ -1168,30 +1070,13 @@
     </footer>
 
 
-
-    <script>
-
-        function toggleMenu() {
-
-            const menu =
-                document.querySelector(".nav-links");
-
-            menu.classList.toggle("show");
-
-        }
+<script>
+document.getElementById('menuBtn').onclick = () => {
+  document.querySelector('.nav-menu').classList.toggle('open');
+}
+</script>
 
 
-        function sendMessage(event) {
-
-            event.preventDefault();
-
-            alert(
-                "Thank you! Your message has been received."
-            );
-
-        }
-
-    </script>
-
+    {% include 'partials/profile_menu.html' %}
 </body>
 </html>

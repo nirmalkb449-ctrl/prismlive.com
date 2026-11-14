@@ -5,6 +5,11 @@ try:
 except ImportError:
     pass
 import sqlite3
+import hashlib
+import secrets
+import smtplib
+from datetime import datetime, timedelta, timezone
+from email.message import EmailMessage
 from functools import wraps
 from pathlib import Path
 
@@ -15,15 +20,18 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from db import get_db, init_db
 
 BASE_DIR = Path(__file__).resolve().parent
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static', static_folder='static')
 app.config.update(
-    SECRET_KEY=os.environ.get("SECRET_KEY", "dev-only-change-me-before-deploying-7c2b9e5f"),
+    SECRET_KEY=os.environ.get("SECRET_KEY") or ("local-development-only-change-this" if os.environ.get("RENDER") != "true" else None),
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax",
-    SESSION_COOKIE_SECURE=os.environ.get("COOKIE_SECURE", "0") == "1",
+    SESSION_COOKIE_SECURE=os.environ.get("COOKIE_SECURE", "1" if os.environ.get("RENDER") == "true" else "0") == "1",
     MAX_CONTENT_LENGTH=2 * 1024 * 1024,
 )
 socketio = SocketIO(app, cors_allowed_origins=None, async_mode="threading", logger=False, engineio_logger=False)
+
+if not app.config.get('SECRET_KEY'):
+    raise RuntimeError('Set SECRET_KEY in the production environment before starting PrismLive.')
 
 # Socket.IO presence is in-memory (one server process). Messages themselves are stored in SQLite.
 online_users = set()
@@ -83,6 +91,11 @@ def inject_template_context():
     return {"current_user": current_user(), "logged_in": "user_id" in session}
 
 
+@app.get("/healthz")
+def healthz():
+    return jsonify({"status": "ok"}), 200
+
+
 @app.route("/")
 def index():
     return redirect(url_for("home"))
@@ -90,7 +103,11 @@ def index():
 
 @app.route("/home")
 def home():
-    return render_template("prismlive_home_page.html")
+    return render_template("prismlive_home_page.html", 
+    logged_in=True,
+    user_name=session.get('user_name', 'User'),
+    user_email=session.get('user_email', '')
+)
 
 
 @app.route("/about")
@@ -101,6 +118,47 @@ def about():
 @app.route("/media")
 def media():
     return render_template("prismlive_media_page.html")
+
+
+
+def send_password_reset_email(recipient, reset_url):
+    """Send a one-time password reset URL using SMTP settings from environment."""
+    host = os.environ.get("MAIL_SERVER", "").strip()
+    username = os.environ.get("MAIL_USERNAME", "").strip()
+    password = os.environ.get("MAIL_PASSWORD", "")
+    sender = os.environ.get("MAIL_DEFAULT_SENDER", username).strip()
+    port = int(os.environ.get("MAIL_PORT", "587"))
+    use_ssl = os.environ.get("MAIL_USE_SSL", "0") == "1"
+    use_tls = os.environ.get("MAIL_USE_TLS", "1") == "1"
+
+    if not all([host, username, password, sender]):
+        raise RuntimeError("Email is not configured. Set MAIL_SERVER, MAIL_USERNAME, MAIL_PASSWORD and MAIL_DEFAULT_SENDER.")
+
+    message = EmailMessage()
+    message["Subject"] = "Reset your Prism Live password"
+    message["From"] = sender
+    message["To"] = recipient
+    message.set_content(
+        "Hello,\n\n"
+        "We received a request to reset your Prism Live password.\n"
+        "Use the secure, one-time link below within 30 minutes:\n\n"
+        f"{reset_url}\n\n"
+        "If you did not request this, you can ignore this email. "
+        "Your password will not change unless the link is used.\n\n"
+        "Prism Live"
+    )
+    if use_ssl:
+        with smtplib.SMTP_SSL(host, port, timeout=20) as server:
+            server.login(username, password)
+            server.send_message(message)
+    else:
+        with smtplib.SMTP(host, port, timeout=20) as server:
+            server.ehlo()
+            if use_tls:
+                server.starttls()
+                server.ehlo()
+            server.login(username, password)
+            server.send_message(message)
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -144,49 +202,116 @@ def register():
 
 
 
+# @app.post("/api/ai-chat")
+# def ai_chat_api():
+#     """Gemini-powered public assistant. API key stays on the server."""
+#     import requests
+#     api_key = os.environ.get("GEMINI_API_KEY")
+#     if not api_key:
+#         return jsonify({"error": "AI assistant is not configured. Add GEMINI_API_KEY to server environment."}), 503
+#     payload = request.get_json(silent=True) or {}
+#     message = str(payload.get("message", "")).strip()
+#     history = payload.get("history", [])
+#     if not message:
+#         return jsonify({"error": "Please enter a message."}), 400
+#     if len(message) > 4000:
+#         return jsonify({"error": "Message is too long."}), 413
+#     contents = []
+#     if isinstance(history, list):
+#         for item in history[-10:]:
+#             if isinstance(item, dict) and item.get("role") in ("user", "model") and isinstance(item.get("text"), str):
+#                 contents.append({"role": item["role"], "parts": [{"text": item["text"][:4000]}]})
+#     contents.append({"role": "user", "parts": [{"text": message}]})
+#     model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+#     try:
+#         resp = requests.post(
+#             f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+#             params={"key": api_key},
+#             json={
+#                 "systemInstruction": {"parts": [{"text":
+#                     "You are Prism AI, a friendly assistant on PrismLive. Give useful concise answers. "
+#                     "Do not claim to access private user data or complete website actions. Never request passwords, OTPs or payment secrets."}]},
+#                 "contents": contents,
+#                 "generationConfig": {"temperature": 0.7, "maxOutputTokens": 900},
+#             }, timeout=35)
+#         resp.raise_for_status()
+#         data = resp.json()
+#         answer = "".join(p.get("text", "") for p in data.get("candidates", [{}])[0].get("content", {}).get("parts", [])).strip()
+#         if not answer:
+#             return jsonify({"error": "The AI returned an empty response."}), 502
+#         return jsonify({"reply": answer})
+#     except requests.Timeout:
+#         return jsonify({"error": "AI request timed out. Please try again."}), 504
+#     except requests.RequestException:
+#         app.logger.exception("Gemini API request failed")
+#         return jsonify({"error": "Could not connect to AI. Check the server API key and model configuration."}), 502
+
 @app.post("/api/ai-chat")
 def ai_chat_api():
-    """Gemini-powered public assistant. API key stays on the server."""
-    import requests
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        return jsonify({"error": "AI assistant is not configured. Add GEMINI_API_KEY to server environment."}), 503
+    import requests, os
     payload = request.get_json(silent=True) or {}
     message = str(payload.get("message", "")).strip()
     history = payload.get("history", [])
     if not message:
         return jsonify({"error": "Please enter a message."}), 400
-    if len(message) > 4000:
-        return jsonify({"error": "Message is too long."}), 413
-    contents = []
-    if isinstance(history, list):
-        for item in history[-10:]:
-            if isinstance(item, dict) and item.get("role") in ("user", "model") and isinstance(item.get("text"), str):
-                contents.append({"role": item["role"], "parts": [{"text": item["text"][:4000]}]})
-    contents.append({"role": "user", "parts": [{"text": message}]})
-    model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+
+    msg = message.lower()
+
+    # --- WEBSITE NE KURICHU - NAMMUDE OWN ANSWER ---
+    if any(w in msg for w in ["hi", "hello", "hey", "hai", "halo"]):
+        reply = "Hi! Welcome to PrismLive! I am Prism AI. What do you want to know? Price, Service, Contact?"
+        return jsonify({"reply": reply, "response": reply})
+
+    if any(w in msg for w in ["price", "rate", "vila", "cost", "plan", "package"]):
+        reply = "Our plan - 472/-"
+        return jsonify({"reply": reply, "response": reply})
+
+    if any(w in msg for w in ["service", "prism", "website", "about"]):
+        reply = """PrismLive.com is a platform to register programs and to book them through organisations. It is a platform with all-world access.
+
+Functions:
+1. You have to pay and register
+2. You can also book programs
+3. Chat with users and AI chatbot
+4. Upload videos and photos
+5. A person can book through this platform and conduct a program anywhere in the world"""
+        return jsonify({"reply": reply, "response": reply})
+
+    if 'contact' in msg or 'phone' in msg or 'email' in msg or 'number' in msg:
+        reply = "You can contact us through email at prismlive@gmail.com. Tell me your name, I will help you."
+        return jsonify({"reply": reply, "response": reply})
+
+    # --- BAAKI ELLAM - GEMINI POLE GROQ ---
     try:
-        resp = requests.post(
-            f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-            params={"key": api_key},
-            json={
-                "systemInstruction": {"parts": [{"text":
-                    "You are Prism AI, a friendly assistant on PrismLive. Give useful concise answers. "
-                    "Do not claim to access private user data or complete website actions. Never request passwords, OTPs or payment secrets."}]},
-                "contents": contents,
-                "generationConfig": {"temperature": 0.7, "maxOutputTokens": 900},
-            }, timeout=35)
-        resp.raise_for_status()
-        data = resp.json()
-        answer = "".join(p.get("text", "") for p in data.get("candidates", [{}])[0].get("content", {}).get("parts", [])).strip()
-        if not answer:
-            return jsonify({"error": "The AI returned an empty response."}), 502
-        return jsonify({"reply": answer})
-    except requests.Timeout:
-        return jsonify({"error": "AI request timed out. Please try again."}), 504
-    except requests.RequestException:
-        app.logger.exception("Gemini API request failed")
-        return jsonify({"error": "Could not connect to AI. Check the server API key and model configuration."}), 502
+        api_key = os.environ.get("GROQ_API_KEY")
+        if not api_key:
+            return jsonify({"reply": "Groq Key Render il add cheythittilla. Admin ne contact cheyyu. Ippo Price, Service ennu chodichu nokku.", "response": "Groq Key missing"})
+
+        messages = [{"role": "system", "content": "You are Prism AI, helpful assistant for PrismLive. Answer in English only, simple and friendly, like Gemini. Answer ANY question - general knowledge, story, maths, cinema, cooking, everything."}]
+        if isinstance(history, list):
+            for item in history[-10:]:
+                if isinstance(item, dict) and item.get("role") in ("user", "model"):
+                    role = "user" if item.get("role") == "user" else "assistant"
+                    messages.append({"role": role, "content": str(item.get("text", ""))[:4000]})
+        messages.append({"role": "user", "content": message})
+
+        res = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json={"model": "openai/gpt-oss-20b", "messages": messages, "temperature": 0.7},
+            timeout=25
+        )
+        print("GROQ STATUS:", res.status_code, res.text[:500])
+        data = res.json()
+        if "choices" not in data:
+            return jsonify({"reply": f"Groq Error: {data}. Key check cheyyu.", "response": "Groq error"})
+        reply = data["choices"][0]["message"]["content"]
+        return jsonify({"reply": reply, "response": reply})
+    except Exception as e:
+        print("GROQ EXCEPTION:", e)
+        return jsonify({"reply": "Sorry, oru cheriya technical issue. Price, service ennu chodichu nokku, allenkil veendum try cheyyu.", "response": "Sorry"})
+
+
 
 
 @app.route("/payment", methods=["GET", "POST"])
@@ -215,6 +340,8 @@ def payment():
     return render_template("prismlive_payment_page.html",
                            upi_id=upi_id, payee=payee, amount=amount, upi_link=upi_link)
 
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -236,6 +363,95 @@ def login():
         flash("Invalid email or password.", "error")
         return redirect(url_for("login"))
     return render_template("prismlive_login_page.html")
+
+
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()[:254]
+        # Always show the same response to avoid revealing registered addresses.
+        with get_db() as db:
+            user = db.execute(
+                "SELECT id, email FROM users WHERE email = ? COLLATE NOCASE AND is_active = 1",
+                (email,)
+            ).fetchone()
+            if user:
+                raw_token = secrets.token_urlsafe(32)
+                token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+                expires_at = (datetime.now(timezone.utc) + timedelta(minutes=30)).isoformat()
+                db.execute("DELETE FROM password_reset_tokens WHERE user_id = ?", (user["id"],))
+                db.execute(
+                    "INSERT INTO password_reset_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)",
+                    (user["id"], token_hash, expires_at)
+                )
+                reset_url = url_for("reset_password", token=raw_token, _external=True)
+                try:
+                    send_password_reset_email(user["email"], reset_url)
+                except Exception:
+                    app.logger.exception("Could not send password reset email")
+                    # Remove the unusable token; never expose SMTP details to the visitor.
+                    db.execute("DELETE FROM password_reset_tokens WHERE token_hash = ?", (token_hash,))
+                    flash("We could not send the reset email right now. Please try again later.", "error")
+                    return redirect(url_for("forgot_password"))
+        flash("If an active account uses that email, a password reset link has been sent.", "success")
+        return redirect(url_for("forgot_password"))
+    return render_template("prismlive_forgot_password_page.html")
+
+
+@app.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    now = datetime.now(timezone.utc)
+    with get_db() as db:
+        record = db.execute(
+            """SELECT password_reset_tokens.user_id, password_reset_tokens.expires_at
+               FROM password_reset_tokens
+               JOIN users ON users.id = password_reset_tokens.user_id
+               WHERE password_reset_tokens.token_hash = ? AND users.is_active = 1""",
+            (token_hash,)
+        ).fetchone()
+    if not record:
+        flash("This reset link is invalid or has already been used. Request a new one.", "error")
+        return redirect(url_for("forgot_password"))
+    try:
+        expiry = datetime.fromisoformat(record["expires_at"])
+        if expiry.tzinfo is None:
+            expiry = expiry.replace(tzinfo=timezone.utc)
+    except ValueError:
+        expiry = now - timedelta(seconds=1)
+    if expiry <= now:
+        with get_db() as db:
+            db.execute("DELETE FROM password_reset_tokens WHERE token_hash = ?", (token_hash,))
+        flash("This reset link has expired. Please request a new one.", "error")
+        return redirect(url_for("forgot_password"))
+
+    if request.method == "POST":
+        password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+        if len(password) < 8:
+            flash("Your new password must contain at least 8 characters.", "error")
+        elif password != confirm_password:
+            flash("The passwords do not match.", "error")
+        else:
+            with get_db() as db:
+                # Re-check token inside the write transaction to prevent reuse.
+                valid = db.execute(
+                    "SELECT user_id FROM password_reset_tokens WHERE token_hash = ?",
+                    (token_hash,)
+                ).fetchone()
+                if not valid:
+                    flash("This reset link has already been used. Request a new one.", "error")
+                    return redirect(url_for("forgot_password"))
+                db.execute(
+                    "UPDATE users SET password_hash = ? WHERE id = ?",
+                    (generate_password_hash(password), valid["user_id"])
+                )
+                db.execute("DELETE FROM password_reset_tokens WHERE user_id = ?", (valid["user_id"],))
+            session.clear()
+            flash("Your password has been reset successfully. Please log in.", "success")
+            return redirect(url_for("login"))
+    return render_template("prismlive_reset_password_page.html", token=token)
 
 
 @app.route("/logout", methods=["POST"])

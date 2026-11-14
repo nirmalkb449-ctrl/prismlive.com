@@ -1,0 +1,10 @@
+{% if logged_in and current_user %}
+<div class="pl-profile-shell" id="plProfileShell">
+<button class="pl-profile-trigger" id="plProfileTrigger" type="button" aria-expanded="false" aria-controls="plProfileMenu">
+<span class="pl-avatar">{{ (current_user.first_name or 'P')[0]|upper }}</span><span class="pl-profile-name">{{ current_user.first_name }} {{ current_user.last_name }}</span><span class="pl-chevron">▾</span></button>
+<div class="pl-profile-menu" id="plProfileMenu" hidden>
+<div class="pl-profile-head"><span class="pl-avatar pl-avatar-large">{{ (current_user.first_name or 'P')[0]|upper }}</span><span><strong>{{ current_user.first_name }} {{ current_user.last_name }}</strong><small>{{ current_user.email }}</small></span></div>
+<a href="{{ url_for('profile') }}">♙ <span>My Profile</span></a><a href="{{ url_for('account_settings') }}">⚙ <span>Account Settings</span></a><a href="{{ url_for('my_projects') }}">▱ <span>My Projects</span></a><a href="{{ url_for('activity_history') }}">◷ <span>Activity History</span></a>
+{% if current_user.role in ('admin','superadmin') %}<a href="{{ url_for('admin_dashboard') }}">▦ <span>Admin Dashboard</span></a>{% endif %}
+<form method="post" action="{{ url_for('logout') }}"><button type="submit">⇥ <span>Sign Out</span></button></form></div></div>
+<script src="{{ url_for('static', filename='js/profile-menu.js') }}" defer></script>{% endif %}

@@ -1080,6 +1080,8 @@ a{
 
 </style>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-responsive.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile-menu.css') }}">
 </head>
 
 
@@ -2000,6 +2002,7 @@ buttons.forEach(button => {
 </script>
 
 
+    {% include 'partials/profile_menu.html' %}
 </body>
 
 </html>

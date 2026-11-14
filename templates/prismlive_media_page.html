@@ -56,22 +56,25 @@
         }
 
         .nav-container {
-            width: 94%;
-            max-width: 1240px;
-            height: 100%;
-            margin: auto;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    margin: 0;
 
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+    padding: 0 40px;
+    box-sizing: border-box;
 
-        .logo {
-            color: white;
-            font-size: 20px;
-            font-weight: 800;
-             letter-spacing: -0.5px;
-        }
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    color: white;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
 
         .nav-links {
             display: flex;
@@ -818,23 +821,13 @@
            FOOTER
         ========================================= */
 
-        footer {
-            width: 94%;
-            max-width: 1180px;
-
-            margin: 0 auto 20px;
-
-            padding: 20px 30px;
-
-            background: #06346f;
-
-            color: white;
-
-            display: flex;
-            justify-content: space-between;
-
-            border-radius: 0 0 10px 10px;
-        }
+       footer {
+    width: 100%;
+    max-width: 1180px;
+    margin: 18px auto 20px;
+    padding: 20px 30px;
+    border-radius: 10px;
+}
 
         .footer-logo {
             font-size: 17px;
@@ -851,67 +844,18 @@
    RESPONSIVE
 =================================== */
 
-@media(max-width: 900px) {
+ .hamburger{ display:none; font-size:28px; background:none; border:none; color:white; cursor:pointer; }
 
-    .nav-menu {
-        display: none;
-    }
-
-    .hero-content h1 {
-        font-size: 46px;
-    }
-
-    .category-grid {
-        grid-template-columns:
-        repeat(2, 1fr);
-    }
-
-    .gallery-grid,
-    .video-grid,
-    .news-grid {
-        grid-template-columns:
-        repeat(2, 1fr);
-    }
-
-}
-
-
-@media(max-width: 600px) {
-
-    .media-hero {
-        min-height: 520px;
-    }
-
-    .hero-content h1 {
-        font-size: 38px;
-    }
-
-    .hero-content {
-        margin-left: 7%;
-        margin-right: 7%;
-    }
-
-    .hero-buttons {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .category-grid,
-    .gallery-grid,
-    .video-grid,
-    .news-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .introduction h2,
-    .section-title h2 {
-        font-size: 27px;
-    }
-
+@media (max-width: 768px){
+  .hamburger{ display:block !important; }
+  .nav-menu{ display:none; flex-direction:column; background:#0a4bd6; width:100%; padding:20px; gap:15px; position:absolute; top:70px; left:0; }
+  .nav-menu.open{ display:flex !important; }
 }
 
 </style>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-responsive.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile-menu.css') }}">
 </head>
 
 
@@ -930,6 +874,8 @@
             <a href="#" class="logo">
                 Prism Live
             </a>
+
+            <button id="menuBtn" class="hamburger">☰</button>
 
             <nav class="nav-links">
 
@@ -1531,5 +1477,13 @@
 
     </footer>
 
+    <script>
+document.getElementById('menuBtn').onclick = () => {
+  document.querySelector('.nav-menu').classList.toggle('open');
+}
+</script>
+
+
+    {% include 'partials/profile_menu.html' %}
 </body>
 </html>

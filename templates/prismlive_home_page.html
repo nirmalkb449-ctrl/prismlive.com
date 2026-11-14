@@ -43,6 +43,7 @@
         }
 
         .website {
+            position: relative;
             width: 100%;
             max-width: 2280px;
             margin: 8px auto;
@@ -56,36 +57,34 @@
         /* =========================
            NAVIGATION
         ========================= */
-    
-       .navbar {
-            position: absolute;
+   .navbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: none;
 
-            top: 3px;
-            left: 50%;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
 
-            transform: translateX(-50%);
+    height: 62px;
+    padding: 0 24px;
 
-            width: 100%;
-            max-width: 1220px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-            height: 62px;
+    z-index: 30;
+    color: #ffffff;
+    background: linear-gradient(90deg, rgba(8, 55, 125, 0.42), rgba(8, 75, 145, 0.18));
+    backdrop-filter: blur(3px);
+}
 
-            padding: 0 18px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            z-index: 20;
-
-            color: #ffffff;
-        }
-
-        .logo {
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: -0.8px;
-        }
+.logo {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+}
 
         .nav-menu {
             display: flex;
@@ -109,6 +108,18 @@
             border: 1px solid rgba(225, 231, 236, 0.85);
             border-radius: 5px;
         }
+
+.profile-wrap { position: relative; display: inline-block; }
+.profile-btn { background: white !important; border: none !important; border-radius: 30px !important; padding: 4px 14px 4px 4px !important; display: flex !important; align-items: center !important; gap: 10px !important; cursor: pointer !important; font-weight: 600 !important; color: #222 !important; box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important; }
+.profile-circle { width: 36px !important; height: 36px !important; background: #1a73e8 !important; color: white !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; font-weight: bold !important; font-size: 18px !important; }
+.profile-circle.big { width: 52px !important; height: 52px !important; font-size: 24px !important; }
+.profile-menu { position: absolute !important; right: 0 !important; top: 52px !important; width: 280px !important; background: white !important; border-radius: 14px !important; box-shadow: 0 8px 25px rgba(0,0,0,0.18) !important; padding: 16px 12px 10px 12px !important; z-index: 100 !important; }
+.profile-top { display: flex !important; gap: 12px !important; align-items: center !important; padding: 0 8px 14px 8px !important; border-bottom: 1px solid #eee !important; margin-bottom: 8px !important; text-align: left !important; }
+.profile-top b { color: #111 !important; font-size: 17px !important; }
+.profile-top small { color: #888 !important; font-size: 13px !important; }
+.profile-menu a { display: flex !important; align-items: center !important; gap: 12px !important; padding: 11px 10px !important; color: #333 !important; background: white !important; text-decoration: none !important; border-radius: 8px !important; font-size: 15px !important; font-weight: 400 !important; text-align: left !important; }
+.profile-menu a:hover { background: #f2f2f2 !important; color: #000 !important; }
+.profile-menu a span { font-size: 16px !important; width: 20px !important; text-align: center !important; }
         
         
 
@@ -475,23 +486,12 @@
         ========================= */
 
         footer {
-            width: 100%;
-            max-width: 1180px;
-
-            margin: 18px auto 20px;
-
-            padding: 20px 30px;
-
-            background: #06346f;
-
-            color: white;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            border-radius: 10px;
-        }
+    width: 100%;
+    max-width: 1180px;
+    margin: 18px auto 20px;
+    padding: 20px 30px;
+    border-radius: 10px;
+}
 
         .footer-logo {
             font-size: 17px;
@@ -509,125 +509,165 @@
            RESPONSIVE
         ========================= */
 
-        @media (max-width: 900px) {
+       .hamburger{ display:none; font-size:28px; background:none; border:none; color:white; cursor:pointer; }
 
-            .nav-menu {
-                gap: 11px;
-            }
-
-            .nav-menu a {
-                font-size: 8px;
-            }
-
-            .hero-content {
-                padding-left: 35px;
-            }
-
-            .program-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-
-        @media (max-width: 650px) {
-
-            .website {
-                width: 100%;
-                margin: 0;
-                border-radius: 0;
-            }
-
-            .navbar {
-                padding: 0 18px;
-            }
-
-            .logo {
-                font-size: 18px;
-            }
-
-            .nav-menu {
-                display: none;
-            }
-
-            .hero {
-                min-height: 570px;
-            }
-
-            .hero-content {
-                padding: 130px 25px 80px;
-            }
-
-            .hero h1 {
-                font-size: 38px;
-            }
-
-            .hero-description {
-                font-size: 12px;
-            }
-
-            .statistics {
-                width: calc(100% - 30px);
-
-                grid-template-columns: repeat(2, 1fr);
-
-                margin-top: -30px;
-            }
-
-            .stat {
-                min-height: 70px;
-
-                border-bottom: 1px solid rgba(255,255,255,0.2);
-            }
-
-            .stat:nth-child(2) {
-                border-right: none;
-            }
-
-            .stat:nth-child(3),
-            .stat:nth-child(4) {
-                border-bottom: none;
-            }
-
-            .program-section {
-                padding: 38px 18px;
-            }
-
-            .program-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .bottom-cta {
-                flex-direction: column;
-                gap: 10px;
-                padding: 18px;
-            }
-        }
-
-
-        @media (max-width: 430px) {
-
-            .program-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .program-card {
-                min-height: 130px;
-            }
-        }
-
+@media (max-width: 768px){
+  .hamburger{ display:block !important; }
+  .nav-menu{ display:none; flex-direction:column; background:#0a4bd6; width:100%; padding:20px; gap:15px; position:absolute; top:70px; left:0; }
+  .nav-menu.open{ display:flex !important; }
+}
     
-        .side-chat-link{position:fixed;right:18px;top:46%;z-index:1000;width:52px;height:52px;border-radius:17px;background:linear-gradient(135deg,#0878df,#35a4ff);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 10px 28px rgba(0,76,160,.28);text-decoration:none;font-size:21px;transition:.2s}
-        .side-chat-link:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(0,76,160,.38)}
-        .side-chat-link span{position:absolute;right:62px;background:#123d70;color:#fff;padding:8px 11px;border-radius:8px;font-size:11px;white-space:nowrap;opacity:0;pointer-events:none;transition:.2s}
-        .side-chat-link:hover span{opacity:1}
-        @media(max-width:600px){.side-chat-link{right:10px;width:46px;height:46px}}
+
+        /* =========================
+           HOMEPAGE NAV + CHAT FIX
+        ========================= */
+        .navbar {
+            min-height: 64px;
+        }
+
+        .navbar .logo,
+        .navbar .nav-menu a,
+        .navbar .hamburger {
+            color: #ffffff;
+            text-shadow: 0 1px 4px rgba(0, 25, 70, 0.35);
+        }
+
+        .navbar .nav-menu {
+            margin-left: auto;
+            gap: clamp(10px, 1.35vw, 20px);
+        }
+
+        .navbar .nav-menu a {
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            min-height: 42px;
+        }
+
+        .navbar .nav-menu a:hover,
+        .navbar .nav-menu a:focus-visible {
+            color: #ffffff;
+            opacity: 0.78;
+        }
+
+        .navbar .nav-button {
+            border-color: rgba(255,255,255,0.85);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .hamburger {
+            display: none;
+            border: 1px solid rgba(255,255,255,0.65);
+            border-radius: 6px;
+            padding: 4px 10px;
+            min-width: 44px;
+            min-height: 44px;
+            background: rgba(4, 48, 110, 0.35);
+            color: #ffffff;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        /* The live-chat shortcut is a viewport-fixed floating button. */
+        .side-chat-link {
+            position: fixed !important;
+            right: 24px !important;
+            bottom: 24px !important;
+            left: auto !important;
+            top: auto !important;
+            z-index: 10000 !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            min-height: 52px;
+            padding: 0 17px;
+            border: 1px solid rgba(255,255,255,0.75);
+            border-radius: 28px;
+            background: linear-gradient(135deg, #075fc5, #0877e2);
+            color: #ffffff !important;
+            font: 600 13px/1 "Poppins", sans-serif;
+            text-decoration: none;
+            box-shadow: 0 8px 26px rgba(0, 38, 90, 0.28);
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .side-chat-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 38, 90, 0.35);
+        }
+
+        .side-chat-link svg {
+            width: 22px;
+            height: 22px;
+            flex: 0 0 22px;
+        }
+
+        @media (max-width: 1000px) {
+            .navbar {
+                padding: 8px 18px;
+                min-height: 64px;
+                flex-wrap: nowrap;
+            }
+
+            .hamburger {
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                margin-left: auto;
+            }
+
+            .navbar .nav-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                width: 100%;
+                max-height: calc(100vh - 80px);
+                overflow-y: auto;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 4px;
+                margin: 0;
+                padding: 12px 18px 18px;
+                background: rgba(5, 53, 120, 0.98);
+                border-top: 1px solid rgba(255,255,255,0.18);
+                box-shadow: 0 12px 24px rgba(0, 25, 70, 0.22);
+            }
+
+            .navbar .nav-menu.open {
+                display: flex !important;
+            }
+
+            .navbar .nav-menu a {
+                width: 100%;
+                min-height: 44px;
+                padding: 8px 10px;
+                white-space: normal;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .side-chat-link {
+                right: 15px !important;
+                bottom: 15px !important;
+                min-height: 50px;
+                padding: 0 15px;
+            }
+
+            .hero-content {
+                padding: 120px 24px 72px;
+            }
+        }
+
 </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-responsive.css') }}">
 </head>
 
 
 <body>
 
-<div class="website">
     {% if logged_in %}
     <a class="side-chat-link" href="{{ url_for('chat') }}" aria-label="Open live chat" title="Live chat">
         <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a7.5 7.5 0 0 1-7.5 7.5H7l-4 2 1.2-4A7.5 7.5 0 1 1 21 11.5Z"/><path d="M8 11h8M8 14h5"/></svg><span>Live chat</span>
@@ -635,6 +675,7 @@
     {% endif %}
 
 
+<div class="website">
     <!-- =========================
          NAVBAR
     ========================== -->
@@ -644,6 +685,10 @@
         <a href="#" class="logo">
             Prism Live
         </a>
+
+<button id="menuBtn" class="hamburger">☰</button>
+
+
 
         <nav class="nav-menu">
 
@@ -659,12 +704,24 @@
             {% if logged_in %}<a href="{{ url_for('payment') }}">Payment</a>{% endif %}
 
             {% if logged_in %}
-            <a href="{{ url_for('logout') }}" onclick="event.preventDefault(); document.getElementById('nav-logout-form').submit();" class="nav-button">Log out</a>
-            <form id="nav-logout-form" action="{{ url_for('logout') }}" method="post" style="display:none"></form>
-            {% else %}
-            <a href="{{ url_for('login') }}">Log in</a>
-            <a href="{{ url_for('register') }}" class="nav-button">Join Prism Live</a>
-            {% endif %}
+<div class="profile-wrap">
+  <button class="profile-btn" onclick="toggleProfile()">
+    <span class="profile-circle">{{ user_name[0] if user_name else 'U' }}</span> {{ user_name or 'My Account' }} <span>▾</span>
+  </button>
+  <div id="profileMenu" class="profile-menu" style="display:none;">
+    <div class="profile-top">
+      <span class="profile-circle big">{{ user_name[0] if user_name else 'U' }}</span>
+      <div><b>{{ user_name or 'My Account' }}</b><br><small>{{ user_email or '' }}</small></div>
+    </div>
+    <a href="#"><span>👤</span> My Profile</a>
+    <a href="#"><span>⚙️</span> Account Settings</a>
+    <a href="#"><span>📁</span> My Projects</a>
+    <a href="#"><span>🕒</span> Activity History</a>
+    <a href="#" onclick="event.preventDefault(); document.getElementById('nav-logout-form').submit();"><span>➡️</span> Sign Out</a>
+  </div>
+</div>
+<form id="nav-logout-form" action="{{ url_for('logout') }}" method="post" style="display:none"></form>
+{% endif %}
 
         </nav>
 
@@ -897,6 +954,13 @@
 
 </div>
 
+<script>
+function toggleProfile() {
+  var m = document.getElementById("profileMenu");
+  if (m.style.display === "none") { m.style.display = "block"; }
+  else { m.style.display = "none"; }
+}
+</script>
 
 </body>
 </html>

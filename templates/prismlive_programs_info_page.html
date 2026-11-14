@@ -294,6 +294,8 @@
       .programs-section { padding: 40px 24px; }
     }
   </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-responsive.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile-menu.css') }}">
 </head>
 <body>
 
@@ -406,5 +408,6 @@
     </footer>
 
 
+    {% include 'partials/profile_menu.html' %}
 </body>
 </html>
