@@ -97,7 +97,7 @@ body {
 .plan-card {
     background: #ffffff;
     padding: 32px 30px;
-    border: 1px solid #dce8f7;
+    border: 2px solid #dce8f7;
     border-radius: 20px;
     box-shadow: 0 12px 35px rgba(38, 95, 150, 0.09);
     position: relative;
@@ -283,9 +283,9 @@ body {
         {% for plan in plans %}
         <div class="plan-card {% if plan['name'] == 'Premium' %}premium{% endif %}">
 
-            {% if plan['name'] == 'Premium' %}
+            <!-- {% if plan['name'] == 'Premium' %}
                 <span class="popular">MOST POPULAR</span>
-            {% endif %}
+            {% endif %} -->
 
             <div class="plan-icon">
                 {% if plan['name'] == 'Premium' %}
