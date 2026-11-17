@@ -198,6 +198,8 @@ def register():
 
 
 
+
+
 @app.post("/api/ai-chat")
 def ai_chat_api():
     """Gemini-powered public assistant. API key stays on the server."""
@@ -243,12 +245,234 @@ def ai_chat_api():
         return jsonify({"error": "Could not connect to AI. Check the server API key and model configuration."}), 502
 
 
+
+
+# -------------------- PrismLive subscriptions --------------------
+
+def initialize_subscriptions():
+    """Create subscription plans in the existing PrismLive database."""
+    with get_db() as db:
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS subscription_plans (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                price REAL NOT NULL CHECK(price > 0),
+                duration TEXT NOT NULL,
+                description TEXT,
+                features TEXT,
+                active INTEGER NOT NULL DEFAULT 1
+            )
+        """)
+        count = db.execute(
+            "SELECT COUNT(*) FROM subscription_plans"
+        ).fetchone()[0]
+        if count == 0:
+            db.executemany("""
+                INSERT INTO subscription_plans
+                    (name, price, duration, description, features, active)
+                VALUES (?, ?, ?, ?, ?, 1)
+            """, [
+                ("Basic", 199, "month", "Essential PrismLive membership.",
+                 "Basic access\\nStandard features\\nUser profile\\nEmail support"),
+                ("Premium", 499, "month", "Enjoy the complete PrismLive experience.",
+                 "All Basic features\\nPremium access\\nAdvanced features\\nPriority support")
+            ])
+
+
+def is_admin_user():
+    user = current_user()
+    return bool(user and user.get("role") in ("admin", "superadmin"))
+
+
+def is_superadmin_user():
+    user = current_user()
+    return bool(user and user.get("role") == "superadmin")
+
+
+@app.get("/subscription")
+@login_required
+def subscription():
+    with get_db() as db:
+        plans = db.execute("""
+            SELECT id, name, price, duration, description, features
+            FROM subscription_plans
+            WHERE active = 1
+            ORDER BY id
+        """).fetchall()
+    return render_template(
+        "subscription.html",
+        plans=plans,
+        is_admin=is_superadmin_user()
+    )
+
+
+@app.route("/admin/subscriptions")
+@login_required
+def admin_subscriptions():
+
+    if not is_admin_user():
+        flash("Administrator access required.", "error")
+        return redirect(url_for("home"))
+
+    conn = subscription_db()
+
+    plans = conn.execute("""
+        SELECT * FROM subscription_plans
+        ORDER BY id
+    """).fetchall()
+
+    conn.close()
+
+    return render_template(
+        "admin_subscriptions.html",
+        plans=plans
+    )
+
+
+@app.route("/admin/subscriptions/edit/<int:plan_id>",
+           methods=["POST"])
+@login_required
+def edit_subscription(plan_id):
+
+    if not is_admin_user():
+        flash("You are not authorized.", "error")
+        return redirect(url_for("home"))
+
+    name = request.form.get("name", "").strip()
+    description = request.form.get("description", "").strip()
+    features = request.form.get("features", "").strip()
+    duration = request.form.get("duration")
+    active = request.form.get("active")
+
+    try:
+        price = float(request.form.get("price", 0))
+
+        if not name or not description or not features:
+            raise ValueError("All fields are required.")
+
+        if price <= 0 or duration not in ("month", "year"):
+            raise ValueError("Invalid subscription details.")
+
+        if active not in ("0", "1"):
+            raise ValueError("Invalid plan status.")
+
+        conn = subscription_db()
+
+        cursor = conn.execute("""
+            UPDATE subscription_plans
+            SET name = ?,
+                price = ?,
+                duration = ?,
+                description = ?,
+                features = ?,
+                active = ?
+            WHERE id = ?
+        """, (
+            name, price, duration, description,
+            features, int(active), plan_id
+        ))
+
+        conn.commit()
+
+        if cursor.rowcount == 0:
+            flash("Subscription plan not found.", "error")
+        else:
+            flash("Subscription updated successfully!", "success")
+
+        conn.close()
+
+    except (ValueError, TypeError) as error:
+        flash(str(error), "error")
+
+    return redirect(url_for("admin_subscriptions"))
+
+
+
+@app.post("/subscription/select/<int:plan_id>")
+@login_required
+def select_subscription(plan_id):
+    with get_db() as db:
+        plan = db.execute("""
+            SELECT id, name, price, duration
+            FROM subscription_plans
+            WHERE id = ? AND active = 1
+        """, (plan_id,)).fetchone()
+
+    if not plan:
+        flash("Subscription plan is unavailable.", "error")
+        return redirect(url_for("subscription"))
+
+    session["selected_plan_id"] = plan["id"]
+    session["selected_plan_name"] = plan["name"]
+    session["selected_plan_amount"] = plan["price"]
+
+    return redirect(url_for(
+        "payment",
+        amount=f"{float(plan['price']):.2f}",
+        plan_id=plan["id"]
+    ))
+
+
+@app.get("/admin/subscriptions")
+@superadmin_required
+def admin_subscriptions():
+    with get_db() as db:
+        plans = db.execute("""
+            SELECT id, name, price, duration, description, features, active
+            FROM subscription_plans
+            ORDER BY id
+        """).fetchall()
+    return render_template("admin_subscriptions.html", plans=plans)
+
+
+@app.post("/admin/subscriptions/edit/<int:plan_id>")
+@superadmin_required
+def edit_subscription(plan_id):
+    name = request.form.get("name", "").strip()[:80]
+    description = request.form.get("description", "").strip()[:500]
+    features = request.form.get("features", "").strip()[:3000]
+    duration = request.form.get("duration", "").strip()
+    active_value = request.form.get("active", "1").strip()
+
+    try:
+        price = float(request.form.get("price", ""))
+        if not (0.01 <= price <= 1000000):
+            raise ValueError
+    except (TypeError, ValueError):
+        flash("Enter a valid subscription price.", "error")
+        return redirect(url_for("admin_subscriptions"))
+
+    if not name or not description or not features:
+        flash("Please complete all subscription fields.", "error")
+        return redirect(url_for("admin_subscriptions"))
+    if duration not in ("month", "year") or active_value not in ("0", "1"):
+        flash("Choose a valid duration and plan status.", "error")
+        return redirect(url_for("admin_subscriptions"))
+
+    with get_db() as db:
+        cursor = db.execute("""
+            UPDATE subscription_plans
+            SET name = ?, price = ?, duration = ?,
+                description = ?, features = ?, active = ?
+            WHERE id = ?
+        """, (name, price, duration, description, features,
+              int(active_value), plan_id))
+
+    if cursor.rowcount == 0:
+        flash("Subscription plan was not found.", "error")
+    else:
+        flash("Subscription plan updated successfully.", "success")
+    return redirect(url_for("admin_subscriptions"))
+
+# ------------------ End PrismLive subscriptions ------------------
+
+
 @app.route("/payment", methods=["GET", "POST"])
 @login_required
 def payment():
     upi_id = os.environ.get("UPI_ID", "").strip()
     payee = os.environ.get("UPI_PAYEE_NAME", "PrismLive").strip()
-    amount = ""
+    amount = request.args.get("amount", "").strip() if request.method == "GET" else ""
     upi_link = ""
     if request.method == "POST":
         amount = request.form.get("amount", "").strip()
@@ -619,6 +843,7 @@ def socket_send_message(data):
 
 # Initialize schema when imported by Flask/Gunicorn as well as when run locally.
 init_db()
+initialize_subscriptions()
 
 if __name__ == '__main__':
     import os

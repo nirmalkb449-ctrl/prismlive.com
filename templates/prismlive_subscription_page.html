@@ -1,0 +1,348 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subscription | PrismLive</title>
+<link rel="stylesheet"
+          href="{{ url_for('static', filename='css/subscription.css') }}">
+
+<style>
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(
+        120deg,
+        #eaf3ff,
+        #f5f9ff
+    );
+    color: #173b63;
+    min-height: 100vh;
+}
+
+/* Navigation */
+
+.navbar {
+    height: 66px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6%;
+    box-shadow: 0 2px 12px rgba(30, 90, 150, 0.08);
+}
+
+.logo {
+    color: #0870cb;
+    font-size: 22px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.home-link {
+    color: #0870cb;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Main section */
+
+.subscription-section {
+    max-width: 1050px;
+    margin: 55px auto;
+    padding: 20px;
+}
+
+.heading {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.eyebrow {
+    color: #0870cb;
+    font-size: 11px;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+.heading h1 {
+    color: #153f6b;
+    font-size: 32px;
+    margin: 12px 0;
+}
+
+.heading p {
+    color: #72859d;
+    font-size: 14px;
+}
+
+/* Subscription containers */
+
+.plans-container {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+    max-width: 820px;
+    margin: auto;
+}
+
+.plan-card {
+    background: #ffffff;
+    padding: 32px 30px;
+    border: 1px solid #dce8f7;
+    border-radius: 20px;
+    box-shadow: 0 12px 35px rgba(38, 95, 150, 0.09);
+    position: relative;
+    transition: 0.3s ease;
+}
+
+.plan-card:hover {
+    transform: translateY(-7px);
+    box-shadow: 0 18px 38px rgba(38, 95, 150, 0.16);
+}
+
+.plan-card.premium {
+    border: 2px solid #1681df;
+}
+
+.popular {
+    position: absolute;
+    top: -13px;
+    right: 22px;
+    background: #0870cb;
+    color: white;
+    padding: 7px 15px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.plan-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: #eaf4ff;
+    color: #0870cb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 27px;
+    margin-bottom: 18px;
+}
+
+.plan-card h2 {
+    font-size: 23px;
+    margin-bottom: 14px;
+    color: #174573;
+}
+
+.price {
+    color: #0870cb;
+    font-size: 35px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.currency {
+    font-size: 23px;
+}
+
+.price small {
+    font-size: 13px;
+    font-weight: normal;
+    color: #8192a8;
+}
+
+.plan-description {
+    color: #71849b;
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 40px;
+    margin-bottom: 18px;
+}
+
+.features {
+    border-top: 1px solid #e7eef7;
+    padding-top: 20px;
+    margin-bottom: 25px;
+}
+
+.feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #536b84;
+    font-size: 14px;
+    margin: 15px 0;
+}
+
+.check {
+    color: #087bd5;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.subscribe-btn {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    color: #ffffff;
+    background: linear-gradient(
+        90deg,
+        #0869c6,
+        #3797ed
+    );
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.subscribe-btn:hover {
+    background: #0756a3;
+    transform: scale(1.02);
+}
+
+/* Bottom information */
+
+.secure-note {
+    text-align: center;
+    color: #8192a8;
+    font-size: 12px;
+    margin-top: 35px;
+}
+
+.admin-link {
+    text-align: center;
+    margin-top: 22px;
+}
+
+.admin-link a {
+    text-decoration: none;
+    color: #0870cb;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+/* Mobile responsive */
+
+@media (max-width: 650px) {
+
+    .subscription-section {
+        margin: 25px auto;
+        padding: 15px;
+    }
+
+    .heading h1 {
+        font-size: 25px;
+    }
+
+    .plans-container {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+
+    .plan-card {
+        padding: 27px 23px;
+    }
+
+    .navbar {
+        padding: 0 5%;
+    }
+}
+
+</style>
+
+</head>
+<body>
+
+<header class="navbar">
+    <a href="{{ url_for('home') }}" class="logo">PrismLive</a>
+    <a href="{{ url_for('home') }}" class="home-link">← Home</a>
+</header>
+
+<main class="subscription-section">
+
+    <div class="heading">
+        <span class="eyebrow">PRISMLIVE MEMBERSHIP</span>
+        <h1>Choose Your Subscription</h1>
+        <p>Select the plan that works best for you.</p>
+    </div>
+
+    <div class="plans-container">
+
+        {% for plan in plans %}
+        <div class="plan-card {% if plan['name'] == 'Premium' %}premium{% endif %}">
+
+            {% if plan['name'] == 'Premium' %}
+                <span class="popular">MOST POPULAR</span>
+            {% endif %}
+
+            <div class="plan-icon">
+                {% if plan['name'] == 'Premium' %}
+                    <span>✦</span>
+                {% else %}
+                    <span>◇</span>
+                {% endif %}
+            </div>
+
+            <h2>{{ plan['name'] }}</h2>
+
+            <div class="price">
+                <span class="currency">₹</span>
+                {{ "%.2f"|format(plan['price']) }}
+                <small>/ {{ plan['duration'] }}</small>
+            </div>
+
+            <p class="plan-description">{{ plan['description'] }}</p>
+
+            <div class="features">
+                {% for feature in plan['features'].split('\n') %}
+                    {% if feature.strip() %}
+                    <div class="feature">
+                        <span class="check">✓</span>
+                        {{ feature }}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <form method="POST"
+                  action="{{ url_for('select_subscription',
+                                     plan_id=plan['id']) }}">
+                <button type="submit" class="subscribe-btn">
+                    Choose {{ plan['name'] }}
+                </button>
+            </form>
+
+        </div>
+        {% endfor %}
+
+    </div>
+
+    <div class="secure-note">
+        <span>🔒</span>
+        Secure account access · Flexible subscription plans
+    </div>
+
+    {% if is_admin %}
+    <div class="admin-link">
+        <a href="{{ url_for('admin_subscriptions') }}">
+            ⚙ Edit Subscription Plans
+        </a>
+    </div>
+    {% endif %}
+
+</main>
+
+</body>
+</html>

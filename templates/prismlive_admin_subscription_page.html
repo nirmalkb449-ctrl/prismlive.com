@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Edit Subscriptions | PrismLive</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/subscription.css') }}">
+
+    <style>
+        .admin-container {
+            max-width: 850px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .edit-card {
+            background: white;
+            padding: 28px;
+            border-radius: 16px;
+            border: 1px solid #dce8f7;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(30,80,130,.08);
+        }
+
+        .edit-card h2 {
+            margin-bottom: 20px;
+            color: #0870cb;
+        }
+
+        .edit-card label {
+            display: block;
+            margin: 15px 0 7px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .edit-card input,
+        .edit-card textarea,
+        .edit-card select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d7e3f1;
+            border-radius: 8px;
+            font: inherit;
+        }
+
+        .edit-card textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        .save-btn {
+            width: 100%;
+            background: #0870cb;
+            color: white;
+            padding: 14px;
+            border: 0;
+            border-radius: 8px;
+            margin-top: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="navbar">
+    <a href="{{ url_for('home') }}" class="logo">PrismLive</a>
+    <a href="{{ url_for('subscription') }}" class="home-link">
+        ← Subscription
+    </a>
+</header>
+
+<div class="admin-container">
+
+    <h1>Edit Subscription Plans</h1>
+    <p>Manage your PrismLive membership packages.</p>
+
+    {% for plan in plans %}
+
+    <form class="edit-card" method="POST"
+          action="{{ url_for('edit_subscription',
+                             plan_id=plan['id']) }}">
+
+        <h2>{{ plan['name'] }} Plan</h2>
+
+        <label>Subscription Name</label>
+        <input type="text" name="name"
+               value="{{ plan['name'] }}" required>
+
+        <label>Price (INR ₹)</label>
+        <input type="number" name="price"
+               value="{{ plan['price'] }}"
+               min="1" step="0.01" required>
+
+        <label>Duration</label>
+        <select name="duration">
+            <option value="month"
+                {% if plan['duration'] == 'month' %}selected{% endif %}>
+                Monthly
+            </option>
+
+            <option value="year"
+                {% if plan['duration'] == 'year' %}selected{% endif %}>
+                Yearly
+            </option>
+        </select>
+
+        <label>Description</label>
+        <textarea name="description" required>{{ plan['description'] }}</textarea>
+
+        <label>Features (one feature per line)</label>
+        <textarea name="features" required>{{ plan['features'] }}</textarea>
+
+        <label>Plan Status</label>
+        <select name="active">
+            <option value="1"
+                {% if plan['active'] == 1 %}selected{% endif %}>
+                Active
+            </option>
+
+            <option value="0"
+                {% if plan['active'] == 0 %}selected{% endif %}>
+                Inactive
+            </option>
+        </select>
+
+        <button class="save-btn" type="submit">
+            Save {{ plan['name'] }} Plan
+        </button>
+
+    </form>
+
+    {% endfor %}
+
+</div>
+
+</body>
+</html>
