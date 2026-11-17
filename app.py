@@ -818,7 +818,7 @@ def subscription():
         """).fetchall()
 
     return render_template(
-        "subscription.html",
+        "prismlive_subscription_page.html",
         plans=plans,
         is_admin=is_superadmin_user()
     )
