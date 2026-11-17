@@ -689,7 +689,7 @@
             <a href="prismlive_sponsors_page.html">Sponsors</a>
             <a href="{{ url_for('media') }}">Media</a>
             <a href="{{ url_for('contact') }}">Contact</a>
-            {% if logged_in %}<a href="{{ url_for('payment') }}">Payment</a>{% endif %}
+            {% if logged_in %}<a href="{{ url_for('payment') }}">Subscription</a>{% endif %}
 
             {% if logged_in %}
             <a href="{{ url_for('logout') }}" onclick="event.preventDefault(); document.getElementById('nav-logout-form').submit();" class="nav-button">Log out</a>
