@@ -116,7 +116,7 @@ def initialize_database():
                     872,
                     "year",
                     "Enjoy the complete PrismLive experience.",
-                    "All Basic features\nPremium access\nAdvanced features\nPriority support\nIncluding all taxes"
+                    "All Basic features\nPremium access\nAdvanced features\nIncluding all taxes"
                 )
             ])
 
