@@ -106,17 +106,17 @@ def initialize_database():
             """, [
                 (
                     "Basic",
-                    199,
-                    "month",
+                    472,
+                    "year",
                     "Essential PrismLive membership.",
-                    "Basic access\nStandard features\nUser profile\nEmail support"
+                    "Basic access\nStandard features\nUser profile\nIncluding all taxes"
                 ),
                 (
                     "Premium",
-                    499,
-                    "month",
+                    872,
+                    "year",
                     "Enjoy the complete PrismLive experience.",
-                    "All Basic features\nPremium access\nAdvanced features\nPriority support"
+                    "All Basic features\nPremium access\nAdvanced features\nPriority support\n Including all taxes"
                 )
             ])
 
